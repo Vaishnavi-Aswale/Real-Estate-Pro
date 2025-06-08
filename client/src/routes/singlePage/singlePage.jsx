@@ -27,6 +27,38 @@ function SinglePage() {
     }
   };
 
+  const handleMessage = async () => {
+    if (!currentUser) {
+      navigate("/login");
+      return;
+    }
+
+    console.log("Post user data:", post.user);
+    console.log("Attempting to send message to user ID:", post.user.id);
+
+    // Don't allow messaging yourself
+    if (currentUser.id === post.user.id) {
+      alert("You cannot message yourself!");
+      return;
+    }
+
+    try {
+      console.log("Making API request with receiverId:", post.user.id);
+      // Create a new chat or get existing chat
+      const res = await apiRequest.post("/chats", {
+        receiverId: post.user.id
+      });
+      console.log("Chat creation response:", res);
+
+      // Navigate to profile page with the messages tab
+      navigate(`/profile?tab=messages`);
+    } catch (err) {
+      console.error("Error creating chat:", err);
+      console.error("Error details:", err.response?.data);
+      alert(err?.response?.data?.message || "Failed to create chat. Please try again.");
+    }
+  };
+
   return (
     <div className="singlePage">
       <div className="details">
@@ -43,7 +75,7 @@ function SinglePage() {
                 <div className="price">$ {post.price}</div>
               </div>
               <div className="user">
-                <img src={post.user.avatar} alt="" />
+                <img src={post.user.avatar || "/noavatar.jpg"} alt="" />
                 <span>{post.user.username}</span>
               </div>
             </div>
@@ -139,7 +171,7 @@ function SinglePage() {
             <Map items={[post]} />
           </div>
           <div className="buttons">
-            <button>
+            <button onClick={handleMessage}>
               <img src="/chat.png" alt="" />
               Send a Message
             </button>
